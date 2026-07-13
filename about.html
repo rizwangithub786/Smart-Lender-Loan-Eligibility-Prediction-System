@@ -1,0 +1,468 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        
+        <!-- Header -->
+        <div class="text-center mb-5 no-print">
+            <span class="badge bg-primary-bg text-primary px-3 py-2 fw-semibold mb-2"><i class="fa-solid fa-square-poll-vertical"></i> Machine Learning Dashboard</span>
+            <h2 class="fw-bold text-primary-dark">Model Performance & Data Analytics</h2>
+            <p class="text-muted">Explore metrics, model comparisons, and exploratory data analysis of the Smart Lender system.</p>
+        </div>
+
+        <!-- Upper Grid: Dataset Analytics and Preprocessing Methodology -->
+        <div class="row g-4 mb-5">
+            <!-- Dataset Analytics Card -->
+            <div class="col-lg-6">
+                <div class="custom-card p-4 h-100">
+                    <h4 class="fw-bold text-primary-dark mb-4 border-bottom pb-2">
+                        <i class="fa-solid fa-chart-pie text-primary me-2"></i> Dataset Analytics
+                    </h4>
+                    {% if dataset_stats %}
+                        <div class="row g-3">
+                            <div class="col-6 mb-3">
+                                <span class="small text-muted d-block">Total Records</span>
+                                <span class="h4 fw-bold text-dark mb-0">{{ dataset_stats.total_records }}</span>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <span class="small text-muted d-block">Total Features</span>
+                                <span class="h4 fw-bold text-dark mb-0">{{ dataset_stats.total_features }}</span>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <span class="small text-muted d-block">Missing Values Count</span>
+                                <span class="h4 fw-bold text-danger mb-0">{{ dataset_stats.missing_values }}</span>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <span class="small text-muted d-block">Train/Test Split Ratio</span>
+                                <span class="h4 fw-bold text-dark mb-0">{{ dataset_stats.split_ratio }}</span>
+                            </div>
+                            <div class="col-6">
+                                <span class="small text-muted d-block">Loan Approval Rate</span>
+                                <span class="h5 fw-bold text-success mb-0"><i class="fa-solid fa-circle-check"></i> {{ dataset_stats.approval_rate }}%</span>
+                            </div>
+                            <div class="col-6">
+                                <span class="small text-muted d-block">Loan Rejection Rate</span>
+                                <span class="h5 fw-bold text-danger mb-0"><i class="fa-solid fa-circle-xmark"></i> {{ dataset_stats.rejection_rate }}%</span>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p class="text-muted small">Dataset analytics statistics are not yet compiled. Run the training script.</p>
+                    {% endif %}
+                    
+                    <div class="mt-4 pt-3 border-top d-flex gap-2 no-print">
+                        <a href="{{ url_for('export_dataset_csv') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                            <i class="fa-solid fa-download me-1"></i> Export Stats to CSV
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Preprocessing Dashboard Card -->
+            <div class="col-lg-6">
+                <div class="custom-card p-4 h-100">
+                    <h4 class="fw-bold text-primary-dark mb-4 border-bottom pb-2">
+                        <i class="fa-solid fa-gears text-primary me-2"></i> Data Preprocessing Pipeline
+                    </h4>
+                    <div class="d-flex flex-column gap-3">
+                        <div class="d-flex align-items-start gap-3">
+                            <span class="badge bg-primary-bg text-primary rounded-circle p-2 mt-1 d-flex align-items-center justify-content-center" style="width:32px; height:32px;">1</span>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-1">Missing Value Imputation</h6>
+                                <p class="small text-muted mb-0">Numerical columns are imputed using the <strong>Mean</strong> value. Categorical columns (including Credit History) are filled using the <strong>Mode</strong>.</p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start gap-3">
+                            <span class="badge bg-primary-bg text-primary rounded-circle p-2 mt-1 d-flex align-items-center justify-content-center" style="width:32px; height:32px;">2</span>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-1">Label Encoding</h6>
+                                <p class="small text-muted mb-0">Demographic parameters (Gender, Married, Education, Dependents, Self Employed, Property Area) are converted to ordinal integer values.</p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start gap-3">
+                            <span class="badge bg-primary-bg text-primary rounded-circle p-2 mt-1 d-flex align-items-center justify-content-center" style="width:32px; height:32px;">3</span>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-1">Feature Scaling</h6>
+                                <p class="small text-muted mb-0">A <strong>StandardScaler</strong> is applied to normalise values across numerical metrics (ApplicantIncome, CoapplicantIncome, LoanAmount, Loan Term).</p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start gap-3">
+                            <span class="badge bg-primary-bg text-primary rounded-circle p-2 mt-1 d-flex align-items-center justify-content-center" style="width:32px; height:32px;">4</span>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-1">Class Balancing (SMOTE)</h6>
+                                <p class="small text-muted mb-0"><strong>SMOTE</strong> generates synthetic examples for the minority class, raising the default rejection counts to balance approvals before training.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Comparison Section -->
+        <div class="custom-card p-4 p-md-5 mb-5">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 no-print">
+                <div>
+                    <h3 class="fw-bold text-primary-dark mb-1"><i class="fa-solid fa-list-check text-primary me-2"></i> Model Comparison Matrix</h3>
+                    <p class="text-muted small mb-0">Dynamic metrics scored on the testing split (20% holdout).</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('export_metrics_csv') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                        <i class="fa-solid fa-file-csv me-1"></i> Export Metrics to CSV
+                    </a>
+                    <button type="button" class="btn btn-primary btn-sm rounded-pill px-3" id="btnPrintReport">
+                        <i class="fa-solid fa-print me-1"></i> Print Report PDF
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Visible on print instead of print buttons -->
+            <div class="d-none d-print-block mb-3">
+                <h3 class="fw-bold text-primary-dark">Model Comparison Matrix</h3>
+                <p class="text-muted small">Metrics compiled dynamically on 20% holdout test set.</p>
+            </div>
+            
+            {% if metrics %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle custom-table">
+                        <thead>
+                            <tr>
+                                <th>Algorithm</th>
+                                <th>Train Accuracy</th>
+                                <th>Test Accuracy</th>
+                                <th>Precision</th>
+                                <th>Recall</th>
+                                <th>F1 Score</th>
+                                <th>Cross-Validation</th>
+                                <th>Training Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in metrics %}
+                                <tr {% if row.Model == best_model_name %}class="table-primary fw-semibold border-start border-primary border-4"{% endif %}>
+                                    <td>
+                                        <strong>{{ row.Model }}</strong>
+                                        {% if row.Model == best_model_name %}
+                                            <span class="badge bg-primary ms-2"><i class="fa-solid fa-star"></i> Production</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ row['Train Accuracy'] }}</td>
+                                    <td>{{ row['Test Accuracy'] }}</td>
+                                    <td>{{ row.Precision }}</td>
+                                    <td>{{ row.Recall }}</td>
+                                    <td>{{ row['F1 Score'] }}</td>
+                                    <td>{{ row['CV Score'] }}</td>
+                                    <td>{{ row['Training Time'] }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-warning">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i> Model metrics are not loaded yet. Run `train.py` to calculate metrics and populate this table.
+                </div>
+            {% endif %}
+
+            <div class="mt-4 pt-3 border-top">
+                <h6 class="fw-bold text-dark mb-1">Methodology Statement:</h6>
+                <p class="small text-muted mb-0">The pipeline isolates the testing split before applying SMOTE to prevent data leakage. In cases of identical F1-score outputs, the system prioritizes <strong>XGBoost</strong> due to its performance stability across ensemble tree iterations.</p>
+            </div>
+        </div>
+
+        <!-- Analytical Interactive Tabs -->
+        <div class="row">
+            <div class="col-lg-12">
+                <h3 class="fw-bold text-primary-dark mb-4 text-center no-print"><i class="fa-solid fa-chart-line text-primary me-2"></i> Exploratory Data Analysis & Explainability</h3>
+                
+                <!-- Bootstrap Tabs for categories -->
+                <ul class="nav nav-pills justify-content-center mb-4 gap-2 no-print" id="edaTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active rounded-pill px-4" id="demographics-tab" data-bs-toggle="tab" data-bs-target="#demographics" type="button" role="tab" aria-controls="demographics" aria-selected="true">Demographics</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill px-4" id="distributions-tab" data-bs-toggle="tab" data-bs-target="#distributions" type="button" role="tab" aria-controls="distributions" aria-selected="false">Distributions</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill px-4" id="rates-tab" data-bs-toggle="tab" data-bs-target="#rates" type="button" role="tab" aria-controls="rates" aria-selected="false">Approval Rates</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill px-4" id="correlations-tab" data-bs-toggle="tab" data-bs-target="#correlations" type="button" role="tab" aria-controls="correlations" aria-selected="false">Correlation Matrix</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill px-4" id="cm-tab" data-bs-toggle="tab" data-bs-target="#cm_pane" type="button" role="tab" aria-controls="cm_pane" aria-selected="false">Confusion Matrix</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill px-4" id="importance-tab" data-bs-toggle="tab" data-bs-target="#importance_pane" type="button" role="tab" aria-controls="importance_pane" aria-selected="false">Feature Importance</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="edaTabContent">
+                    <!-- Demographics Tab -->
+                    <div class="tab-pane fade show active" id="demographics" role="tabpanel" aria-labelledby="demographics-tab">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="custom-card p-3">
+                                    <h6 class="fw-bold text-center mb-2">Gender vs Loan Approval Status</h6>
+                                    <img src="{{ url_for('static', filename='images/eda/gender_vs_loan_status.png') }}" class="img-fluid rounded border" alt="Gender vs Loan Status">
+                                    <p class="small text-muted mt-2 mb-0">Demographic analysis showing approval margins between Male and Female applicant entries.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="custom-card p-3">
+                                    <h6 class="fw-bold text-center mb-2">Education Level vs Approval Status</h6>
+                                    <img src="{{ url_for('static', filename='images/eda/education_vs_loan_status.png') }}" class="img-fluid rounded border" alt="Education vs Loan Status">
+                                    <p class="small text-muted mt-2 mb-0">Highlights approval differences between Graduate and Non-Graduate applicant profiles.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="custom-card p-3">
+                                    <h6 class="fw-bold text-center mb-2">Property Area vs Approval Status</h6>
+                                    <img src="{{ url_for('static', filename='images/eda/property_area_vs_loan_status.png') }}" class="img-fluid rounded border" alt="Property Area vs Loan Status">
+                                    <p class="small text-muted mt-2 mb-0">Compares loan clearance spreads across Urban, Semiurban, and Rural assets.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="custom-card p-3">
+                                    <h6 class="fw-bold text-center mb-2">Credit History vs Approval Status</h6>
+                                    <img src="{{ url_for('static', filename='images/eda/credit_history_vs_loan_status.png') }}" class="img-fluid rounded border" alt="Credit History vs Loan Status">
+                                    <p class="small text-muted mt-2 mb-0">Visual representation showing high rejection counts for bad credit history records.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Distributions Tab -->
+                    <div class="tab-pane fade" id="distributions" role="tabpanel" aria-labelledby="distributions-tab">
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <div class="custom-card p-3">
+                                    <h6 class="fw-bold text-center mb-2">Applicant Income Distribution</h6>
+                                    <img src="{{ url_for('static', filename='images/eda/applicant_income_dist.png') }}" class="img-fluid rounded border" alt="Applicant Income Distribution">
+                                    <p class="small text-muted mt-2 mb-0">Displays log-normal skew in primary applicant monthly incomes.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="custom-card p-3">
+                                    <h6 class="fw-bold text-center mb-2">Coapplicant Income Distribution</h6>
+                                    <img src="{{ url_for('static', filename='images/eda/coapplicant_income_dist.png') }}" class="img-fluid rounded border" alt="Coapplicant Income Distribution">
+                                    <p class="small text-muted mt-2 mb-0">Displays zero-inflated monthly contributions of listed co-borrowers.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="custom-card p-3">
+                                    <h6 class="fw-bold text-center mb-2">Loan Amount Distribution</h6>
+                                    <img src="{{ url_for('static', filename='images/eda/loan_amount_dist.png') }}" class="img-fluid rounded border" alt="Loan Amount Distribution">
+                                    <p class="small text-muted mt-2 mb-0">Displays requesting spread of loan amounts (represented in Thousands USD).</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Approval Rates Tab -->
+                    <div class="tab-pane fade" id="rates" role="tabpanel" aria-labelledby="rates-tab">
+                        <div class="row g-4 justify-content-center">
+                            <div class="col-md-4">
+                                <div class="custom-card p-3">
+                                    <h6 class="fw-bold text-center mb-2">Approval Rate by Education</h6>
+                                    <img src="{{ url_for('static', filename='images/eda/approval_rate_education.png') }}" class="img-fluid rounded border" alt="Approval Rate by Education">
+                                    <p class="small text-muted mt-2 mb-0">Clearance ratios demonstrate higher approvals for Graduate degree borrowers.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="custom-card p-3">
+                                    <h6 class="fw-bold text-center mb-2">Approval Rate by Property Area</h6>
+                                    <img src="{{ url_for('static', filename='images/eda/approval_rate_property.png') }}" class="img-fluid rounded border" alt="Approval Rate by Property Area">
+                                    <p class="small text-muted mt-2 mb-0">Ratios show Semiurban zones clear at standard loan guidelines best.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="custom-card p-3">
+                                    <h6 class="fw-bold text-center mb-2">Approval Rate by Gender</h6>
+                                    <img src="{{ url_for('static', filename='images/eda/approval_rate_gender.png') }}" class="img-fluid rounded border" alt="Approval Rate by Gender">
+                                    <p class="small text-muted mt-2 mb-0">Displays approval percentages segmented by applicant gender classifications.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Correlations Tab -->
+                    <div class="tab-pane fade" id="correlations" role="tabpanel" aria-labelledby="correlations-tab">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8">
+                                <div class="custom-card p-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="fw-bold mb-0">Feature Correlation Heatmap</h6>
+                                        <a href="{{ url_for('static', filename='images/eda/correlation_heatmap.png') }}" download class="btn btn-outline-primary btn-sm rounded-pill no-print">
+                                            <i class="fa-solid fa-download me-1"></i> Download Heatmap
+                                        </a>
+                                    </div>
+                                    <img src="{{ url_for('static', filename='images/eda/correlation_heatmap.png') }}" class="img-fluid rounded border mb-4" alt="Correlation Heatmap">
+                                    
+                                    <h5 class="fw-bold text-primary-dark">Interpretation of Feature Relationships</h5>
+                                    <p class="small text-muted">
+                                        - <strong>Credit History vs. Loan Status:</strong> Shows the strongest positive correlation, validating why credit history guidelines act as the primary gatekeeper for credit approvals.
+                                        <br>
+                                        - <strong>Applicant Income vs. Loan Amount:</strong> Demonstrates a strong positive correlation, showing that banks request higher monthly capacity for larger mortgage configurations.
+                                        <br>
+                                        - <strong>Married status vs. Gender:</strong> Shows correlations due to dataset structure dependencies. Married status also trends positively with loan approval rates.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Confusion Matrix Tab -->
+                    <div class="tab-pane fade" id="cm_pane" role="tabpanel" aria-labelledby="cm-tab">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-10">
+                                <div class="custom-card p-4">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-6 text-center mb-3 mb-md-0">
+                                            <h6 class="fw-bold mb-3">XGBoost Production Confusion Matrix</h6>
+                                            <img src="{{ url_for('static', filename='images/eda/confusion_matrix_xgboost.png') }}" class="img-fluid rounded border" alt="Confusion Matrix">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h5 class="fw-bold text-primary-dark">Classification Report Card</h5>
+                                            
+                                            {% if cm %}
+                                                <div class="row g-2 mb-3 text-center">
+                                                    <div class="col-6">
+                                                        <div class="p-2 border rounded bg-success-light text-success">
+                                                            <div class="small fw-semibold">True Positives</div>
+                                                            <div class="h3 fw-bold">{{ cm.tp }}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="p-2 border rounded bg-success-light text-success" style="background-color: #f0fdf4;">
+                                                            <div class="small fw-semibold">True Negatives</div>
+                                                            <div class="h3 fw-bold">{{ cm.tn }}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="p-2 border rounded bg-danger-light text-danger">
+                                                            <div class="small fw-semibold">False Positives</div>
+                                                            <div class="h3 fw-bold">{{ cm.fp }}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="p-2 border rounded bg-danger-light text-danger">
+                                                            <div class="small fw-semibold">False Negatives</div>
+                                                            <div class="h3 fw-bold">{{ cm.fn }}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                            
+                                            {% if classification_report %}
+                                                <div class="table-responsive mb-3">
+                                                    <table class="table table-sm table-bordered text-center small mb-0">
+                                                        <thead>
+                                                            <tr class="table-light">
+                                                                <th>Class</th>
+                                                                <th>Precision</th>
+                                                                <th>Recall</th>
+                                                                <th>F1-Score</th>
+                                                                <th>Support</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td><strong>Rejected (0)</strong></td>
+                                                                <td>{{ (classification_report['0']['precision'] * 100)|round(1) }}%</td>
+                                                                <td>{{ (classification_report['0']['recall'] * 100)|round(1) }}%</td>
+                                                                <td>{{ (classification_report['0']['f1-score'] * 100)|round(1) }}%</td>
+                                                                <td>{{ classification_report['0']['support'] }}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><strong>Approved (1)</strong></td>
+                                                                <td>{{ (classification_report['1']['precision'] * 100)|round(1) }}%</td>
+                                                                <td>{{ (classification_report['1']['recall'] * 100)|round(1) }}%</td>
+                                                                <td>{{ (classification_report['1']['f1-score'] * 100)|round(1) }}%</td>
+                                                                <td>{{ classification_report['1']['support'] }}</td>
+                                                            </tr>
+                                                            <tr class="fw-bold table-light">
+                                                                <td>Macro Avg</td>
+                                                                <td>{{ (classification_report['macro avg']['precision'] * 100)|round(1) }}%</td>
+                                                                <td>{{ (classification_report['macro avg']['recall'] * 100)|round(1) }}%</td>
+                                                                <td>{{ (classification_report['macro avg']['f1-score'] * 100)|round(1) }}%</td>
+                                                                <td>{{ classification_report['macro avg']['support'] }}</td>
+                                                            </tr>
+                                                            <tr class="fw-bold table-light">
+                                                                <td>Weighted Avg</td>
+                                                                <td>{{ (classification_report['weighted avg']['precision'] * 100)|round(1) }}%</td>
+                                                                <td>{{ (classification_report['weighted avg']['recall'] * 100)|round(1) }}%</td>
+                                                                <td>{{ (classification_report['weighted avg']['f1-score'] * 100)|round(1) }}%</td>
+                                                                <td>{{ classification_report['weighted avg']['support'] }}</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            {% endif %}
+                                            
+                                            <h6 class="fw-bold text-dark">Interpretation of Results:</h6>
+                                            <p class="small text-muted mb-0">
+                                                The confusion matrix evaluates model performance on validation data. 
+                                                <strong>True Negatives (TN)</strong> represent accurately flagged high-risk applicants. 
+                                                <strong>True Positives (TP)</strong> represent credit-worthy applicants cleared correctly.
+                                                The model targets minimizing <strong>False Positives (FP)</strong> (approving defaults) to protect bank reserves.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feature Importance Tab -->
+                    <div class="tab-pane fade" id="importance_pane" role="tabpanel" aria-labelledby="importance-tab">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-10">
+                                <div class="custom-card p-4">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3 mb-md-0">
+                                            <h6 class="fw-bold mb-3 text-center">XGBoost Relative Feature Importance</h6>
+                                            <img src="{{ url_for('static', filename='images/eda/feature_importance_xgboost.png') }}" class="img-fluid rounded border" alt="Feature Importance">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h5 class="fw-bold text-primary-dark mb-3">Decision Drivers Rank</h5>
+                                            
+                                            {% if feature_importance %}
+                                                <div class="d-flex flex-column gap-3 mb-4">
+                                                    {% for feat in feature_importance[:5] %}
+                                                        <div>
+                                                            <div class="d-flex justify-content-between text-muted small mb-1">
+                                                                <span class="fw-bold text-dark">{{ feat.Feature }}</span>
+                                                                <span>{{ (feat.Importance * 100)|round(1) }}%</span>
+                                                            </div>
+                                                            <div class="progress" style="height: 8px;">
+                                                                <div class="progress-bar progress-bar-purple" role="progressbar" style="width: {{ feat.Importance * 100 }}%"></div>
+                                                            </div>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+
+                                            <h6 class="fw-bold text-dark">Why These Features Matter:</h6>
+                                            <p class="small text-muted mb-0">
+                                                - <strong>Credit History:</strong> Represents prior compliance. Applicants meeting credit history guidelines have a vastly minimized defaults rate.
+                                                <br>
+                                                - <strong>Applicant Income & Loan Amount:</strong> Set the capacity margins. Higher loan requirements against limited incomes present high debt repayment risk.
+                                                <br>
+                                                - <strong>Property Area & Education:</strong> Act as demographic stability coefficients during validation weight adjustments.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}
