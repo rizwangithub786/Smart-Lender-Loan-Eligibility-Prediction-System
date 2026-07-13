@@ -1,1 +1,1 @@
-# Smart-Lender-Loan-Eligibility-Prediction-System
+Smart Lender is an end-to-end Machine Learning web application designed to evaluate loan applicants' profiles and predict their credit eligibility in real-time. By leveraging historical lending parameters, preprocessing pipelines, class-balancing techniques, and robust classification models, it helps banking institutions and financial entities make informed, objective, and high-speed credit decisions.
